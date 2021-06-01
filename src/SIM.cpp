@@ -1,3 +1,6 @@
+/*
+
+*/
 #include <iostream>
 #include <vector>
 #include <string>
@@ -5,9 +8,13 @@
 #include <sstream>
 #include <cassert>
 #include <stdlib.h>
+#include <unordered_map>
+#include <algorithm>
+#include <iterator>
 
 using namespace std;
 
+// Function to read the file and return it as a vector
 vector<string> ReadFile(string path_){
     ifstream file_;
     file_.open(path_);
@@ -25,17 +32,49 @@ vector<string> ReadFile(string path_){
 }
 
 
+
+
+// Function to get the frequency of the codes
+unordered_map<string, int> GetFrequency(vector<string> &vec){
+
+    unordered_map<string, int> frequency_set;
+
+    for (const string &line_ : vec){
+
+        frequency_set[line_]++;
+    }
+    s
+    cout << "Frequency" << "\n";
+    for (auto const &pair: frequency_set) {
+        std::cout  << pair.first << ": " << pair.second << "\n";
+    }
+
+    return frequency_set;
+}
+
+
+
 int main(int argc,char** argv){
+
     int argument = strtol(argv[1], NULL,10);
-    if( argument == 1){
+
+
+
+    if( argument == 0){
         vector<string> code_to_compress;
+        unordered_map<string, int> frequency_list;
+        
         code_to_compress = ReadFile("original.txt");
-        
-        
+
+        frequency_list = GetFrequency(code_to_compress);
+        // cout << frequency_list.size();
         // for (string i: code_to_compress){
         //     cout << i  << "\n";
         // }  
     }
+
+
+
     if( argument == 2){
         vector<string> code_to_decompress;
         code_to_decompress = ReadFile("compressed.txt");
