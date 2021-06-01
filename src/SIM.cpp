@@ -1,5 +1,6 @@
 /*
-
+Index number: 170006n
+Assignment 5: Code compression and decompression
 */
 #include <iostream>
 #include <vector>
@@ -14,9 +15,11 @@
 using namespace std;
 
 /*
-
 Function to read the file and return it as a vector
-
+inputs:
+    path_: string which denotes the path to the file
+output:
+    code_: vector<string> which contains string or 32 char long
 */
 vector<string> ReadFile(string path_)
 {
@@ -37,9 +40,12 @@ vector<string> ReadFile(string path_)
 }
 
 /* 
-
 Function to get the frequency of the codes
-
+inputs:
+    vec: a reference vector<string> of the code to be compressed
+outputs:
+    frequency_set: underordered_map which contains the frequency for each unique instruction
+    insertion_order: contains the order of appearance of each unique instruction 
 */
 auto GetFrequency(vector<string> &vec)
 {
