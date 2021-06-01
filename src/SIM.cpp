@@ -8,7 +8,7 @@
 #include <sstream>
 #include <cassert>
 #include <stdlib.h>
-#include <map>
+#include <unordered_map>
 #include <algorithm>
 #include <iterator>
 
@@ -35,12 +35,19 @@ vector<string> ReadFile(string path_){
 
 
 // Function to get the frequency of the codes
-map<string, int> GetFrequency(vector<string> &vec, int &size_){
+unordered_map<string, int> GetFrequency(vector<string> &vec){
 
-    map<string, int> frequency_set;
-    
+    unordered_map<string, int> frequency_set;
 
+    for (const string &line_ : vec){
 
+        frequency_set[line_]++;
+    }
+    s
+    cout << "Frequency" << "\n";
+    for (auto const &pair: frequency_set) {
+        std::cout  << pair.first << ": " << pair.second << "\n";
+    }
 
     return frequency_set;
 }
@@ -54,25 +61,12 @@ int main(int argc,char** argv){
 
 
     if( argument == 0){
-        vector<string> code_to_compress, unique_occurance;
-        map<string, int> frequency_list;
-        int original_size;
-
-      
-
+        vector<string> code_to_compress;
+        unordered_map<string, int> frequency_list;
+        
         code_to_compress = ReadFile("original.txt");
-        unique_occurance = code_to_compress;
-        original_size = code_to_compress.size();
-        cout << unique_occurance.size() << " " << "\n";
-        cout << &unique_occurance << " " << "\n";
-        cout << &code_to_compress << " " << "\n";
 
-        vector<int>::iterator ip;
-
-        ip = unique(unique_occurance.begin(), unique_occurance.end());
-        unique_occurance.resize(distance(unique_occurance.begin(), ip));
-
-        frequency_list = GetFrequency(code_to_compress, original_size);
+        frequency_list = GetFrequency(code_to_compress);
         // cout << frequency_list.size();
         // for (string i: code_to_compress){
         //     cout << i  << "\n";
