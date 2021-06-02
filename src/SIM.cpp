@@ -12,6 +12,7 @@ Assignment 5: Code compression and decompression
 #include <unordered_map>
 #include <algorithm>
 
+
 using namespace std;
 
 /*
@@ -39,6 +40,20 @@ vector<string> ReadFile(string path_)
     return code_;
 }
 
+
+
+/*
+
+
+*/
+bool cmp(pair<string, int>& a,
+         pair<string, int>& b)
+{
+    return a.second > b.second;
+}
+
+
+
 /* 
 Function to get the frequency of the codes
 inputs:
@@ -47,10 +62,13 @@ outputs:
     frequency_set: underordered_map which contains the frequency for each unique instruction
     insertion_order: contains the order of appearance of each unique instruction 
 */
-auto GetFrequency(vector<string> &vec)
+auto GetFrequency(const vector<string> &vec)
 {
     unordered_map<string, int> frequency_set;
     vector<string> insertion_order;
+    vector<pair<string, int> > sorted_dictionary;
+
+
     for (const string &line_ : vec)
     {
 
@@ -65,12 +83,34 @@ auto GetFrequency(vector<string> &vec)
         }
     }
 
+    for (auto& it : frequency_set) {
+        sorted_dictionary.push_back(it);
+    }
+    sort(sorted_dictionary.begin(), sorted_dictionary.end(), cmp);
+
+    for (auto &it : sorted_dictionary) {
+  
+        cout << it.first  << " " << it.second << endl;
+    }
+
+
+    cout << "after swaping" << endl;
+    for (auto &it : sorted_dictionary) {
+        
+        cout << it.first  << " " << it.second << endl;
+    }
     // cout << "Frequency" << "\n";
     // for (auto const &pair: frequency_set) {
     //     std::cout  << pair.first << ": " << pair.second << "\n";
     // }
     return frequency_set, insertion_order;
 }
+
+
+
+
+
+
 
 int main(int argc, char **argv)
 {
