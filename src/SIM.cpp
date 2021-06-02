@@ -59,7 +59,7 @@ Function to get the frequency of the codes
 inputs:
     vec: a reference vector<string> of the code to be compressed
 outputs:
-    frequency_set: underordered_map which contains the frequency for each unique instruction
+    sorted_dictionary: vector<pair<string, int> which contains the frequency for each unique instruction and sorted in the descending order
     insertion_order: contains the order of appearance of each unique instruction 
 */
 auto GetFrequency(const vector<string> &vec)
@@ -88,22 +88,27 @@ auto GetFrequency(const vector<string> &vec)
     }
     sort(sorted_dictionary.begin(), sorted_dictionary.end(), cmp);
 
-    for (auto &it : sorted_dictionary) {
+    // for (auto &it : sorted_dictionary) {
   
-        cout << it.first  << " " << it.second << endl;
-    }
+    //     cout << it.first  << " " << it.second << endl;
+    // }
+    int si = sorted_dictionary.size();
 
-
-    cout << "after swaping" << endl;
-    for (auto &it : sorted_dictionary) {
+    // for (auto& i : sorted_dictionary){
+    //     int val << i.second;
+    //     cout << i.first << endl;
+    //     for (int j ; j < si; j++)
+    // }
+    // cout << "after swaping" << endl;
+    // for (auto &it : sorted_dictionary) {
         
-        cout << it.first  << " " << it.second << endl;
-    }
+    //     cout << it.first  << " " << it.second << endl;
+    // }
     // cout << "Frequency" << "\n";
     // for (auto const &pair: frequency_set) {
     //     std::cout  << pair.first << ": " << pair.second << "\n";
     // }
-    return frequency_set, insertion_order;
+    return sorted_dictionary, insertion_order;
 }
 
 
@@ -125,6 +130,8 @@ int main(int argc, char **argv)
         code_to_compress = ReadFile("original.txt");
 
         frequency_list, insersion_order = GetFrequency(code_to_compress);
+
+        
         // cout << frequency_list.size();
         // for (string i: code_to_compress){
         //     cout << i  << "\n";
