@@ -54,6 +54,49 @@ bool cmp(pair<string, int>& a,
 
 
 
+auto Sort_dictionary(const unordered_map<string,int> frequency_set, const vector<string> &vec_){
+    vector< pair<string, int> > sorted_dictionary;
+    vector< pair<string, int> > similar_frequency;
+
+    for (auto& it : frequency_set) {
+        sorted_dictionary.push_back(it);
+    }
+    sort(sorted_dictionary.begin(), sorted_dictionary.end(), cmp);
+
+    for (auto &it : sorted_dictionary) {
+  
+        cout << it.first  << " " << it.second << endl;
+    }
+    
+    cout << "print the similar frequency" << endl;
+
+    int size_ = sorted_dictionary.size();
+    for(int i = 0 ; i < size_ ; i++){
+        if (sorted_dictionary[i].second == sorted_dictionary[i+1].second || sorted_dictionary[i].second == sorted_dictionary[i-1].second)
+        {
+            similar_frequency.push_back(sorted_dictionary[i]);
+            // remove_copy(sorted_dictionary.begin(), sorted_dictionary.end(), similar_frequency.begin(), sorted_dictionary[i]);
+
+        } 
+    }
+    int similar_size = similar_frequency.size();
+
+    for(int i = 0 ; i < similar_size ; i++){
+        remove(sorted_dictionary.begin(),sorted_dictionary.end(),similar_frequency[i]);
+    }
+
+    for (auto &it : similar_frequency) {
+  
+        cout << it.first  << " " << it.second << endl;
+    }
+
+    sorted_dictionary.resize(sorted_dictionary.size()-similar_frequency.size());
+
+    // for( int i = 0; i < )
+
+    return sorted_dictionary;
+}
+
 /* 
 Function to get the frequency of the codes
 inputs:
@@ -82,18 +125,21 @@ auto GetFrequency(const vector<string> &vec)
             insertion_order.push_back(line_);
         }
     }
+    sorted_dictionary = Sort_dictionary(frequency_set,insertion_order);
 
-    for (auto& it : frequency_set) {
-        sorted_dictionary.push_back(it);
-    }
-    sort(sorted_dictionary.begin(), sorted_dictionary.end(), cmp);
+    // for (auto& it : frequency_set) {
+    //     sorted_dictionary.push_back(it);
+    // }
+    // sort(sorted_dictionary.begin(), sorted_dictionary.end(), cmp);
 
     // for (auto &it : sorted_dictionary) {
   
     //     cout << it.first  << " " << it.second << endl;
     // }
-    int si = sorted_dictionary.size();
-
+    // int si = sorted_dictionary.size();
+    
+    
+    // for
     // for (auto& i : sorted_dictionary){
     //     int val << i.second;
     //     cout << i.first << endl;
@@ -131,7 +177,7 @@ int main(int argc, char **argv)
 
         frequency_list, insersion_order = GetFrequency(code_to_compress);
 
-        
+
         // cout << frequency_list.size();
         // for (string i: code_to_compress){
         //     cout << i  << "\n";
