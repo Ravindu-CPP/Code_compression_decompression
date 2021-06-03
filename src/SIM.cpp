@@ -9,7 +9,7 @@ Assignment 5: Code compression and decompression
 #include <sstream>
 #include <cassert>
 #include <stdlib.h>
-#include <unordered_map>
+#include <map>
 #include <algorithm>
 
 using namespace std;
@@ -49,25 +49,29 @@ bool cmp(pair<string, int> &a,
     return a.second > b.second;
 }
 
-auto Sort_dictionary(const unordered_map<string, int> frequency_set, const vector<string> &vec_)
+
+
+auto Sort_dictionary(const map<string, int> frequency_set, const vector<string> &vec_)
 {   // define the variables
     vector<pair<string, int>> sorted_dictionary;
     vector<pair<string, int>> similar_frequency;
     
+    //sort the dictionary in the descending order
     for (auto &it : frequency_set)
     {
         sorted_dictionary.push_back(it);
     }
     sort(sorted_dictionary.begin(), sorted_dictionary.end(), cmp);
 
-    for (auto &it : sorted_dictionary)
-    {
 
-        cout << it.first << " " << it.second << endl;
-    }
+    // for (auto &it : sorted_dictionary)
+    // {
+    //     cout << it.first << " " << it.second << endl;
+    // }
 
-    cout << "print the similar frequency" << endl;
+    // cout << "print the similar frequency" << endl;
 
+    // get the similar frequency dictionary values to another vector
     int size_ = sorted_dictionary.size();
     for (int i = 0; i < size_; i++)
     {
@@ -78,36 +82,62 @@ auto Sort_dictionary(const unordered_map<string, int> frequency_set, const vecto
     }
     int similar_size = similar_frequency.size();
 
-    for (int i = 0; i < similar_size; i++)
+    std::map<int , unsigned int> h;
+
+    for (auto const & x : sorted_dictionary)
     {
-        remove(sorted_dictionary.begin(), sorted_dictionary.end(), similar_frequency[i]);
+        ++h[x.second];
     }
 
-    // for (auto &it : similar_frequency) {
-    //     cout << it.first  << " " << it.second << endl;
+    // for (auto &i:h){
+    //     cout << i.first << "  " << i.second << endl;
     // }
+    for (auto &it : sorted_dictionary){
+        cout << it.second << "  " << h[it.second] << endl;
+    }
+    
+    vector<string> dictionary;
 
-    sorted_dictionary.resize(sorted_dictionary.size() - similar_frequency.size());
-
-    for (int j = 0; j < similar_size; j++)
-    {
-        for (int i = 0; i < vec_.size(); i++)
-        {
-            if (vec_[i] == similar_frequency[j].first)
-            {
-                sorted_dictionary.push_back(similar_frequency[j]);
+    for(auto &it : sorted_dictionary){
+        int count_ = h[it.second];  // it.first is the instruction code being checked
+        if (count_> 1){
+            // cout << "There exist count" << endl;
+            int k = it.second;
+            int added = 0;
+            for(int i = 0; i < count_; i++){
+                for (string j: vec_){
+                    auto it1 = any_of(similar_frequency.begin(), similar_frequency.end(), [&j](const pair<string, int>& similar_frequency)
+                        { return similar_frequency.first == j; });
+                    auto it2 = any_of(similar_frequency.begin(), similar_frequency.end(), [&k](const pair<string, int>& similar_frequency)
+                        { return similar_frequency.second == k; });
+                    // cout << it << endl;
+                    // cout << it2 << endl;
+                    // check if j is in similar || it.second in similar frequency
+                    // if so push back to dictionary 
+                    // cout << (it && it2 && added == 0) << endl;
+                    if (it1 && it2 && added == 0){
+                        // cout << j << endl;
+                        dictionary.push_back(it.first);
+                        added = 1;
+                        break;
+                    }
+                    else{
+                        continue;
+                    }
+                      
+                }
             }
+        }
+        else{
+            dictionary.push_back(it.first);
+             
         }
     }
 
-    cout << endl;
-    cout << endl;
-    cout << endl;
-    for (auto &it : sorted_dictionary)
-    {
-
-        cout << it.first << " " << it.second << endl;
+    for (auto it : dictionary){
+        cout << it << endl;
     }
+
 
     return sorted_dictionary;
 }
@@ -122,7 +152,7 @@ outputs:
 */
 auto GetFrequency(const vector<string> &vec)
 {
-    unordered_map<string, int> frequency_set;
+    map<string, int> frequency_set;
     vector<string> insertion_order;
     vector<pair<string, int>> sorted_dictionary;
 
@@ -139,7 +169,9 @@ auto GetFrequency(const vector<string> &vec)
             insertion_order.push_back(line_);
         }
     }
+
     sorted_dictionary = Sort_dictionary(frequency_set, insertion_order);
+
     return sorted_dictionary, insertion_order;
 }
 
@@ -151,7 +183,7 @@ int main(int argc, char **argv)
     if (argument == 0)
     {
         vector<string> code_to_compress, insersion_order;
-        unordered_map<string, int> frequency_list;
+        map<string, int> frequency_list;
 
         code_to_compress = ReadFile("original.txt");
 
