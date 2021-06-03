@@ -289,11 +289,11 @@ vector<string> Compression_algo(vector<string> &code_to_commpress, vector<string
     {   bool by_dictionary = false;
         bool by_rle = false;
         instruction_repeated = previous_instruction == instru_;
-        // cout << instruction_repeated << "  instruction  " << instru_;
+        cout << instruction_repeated << "  instruction  " << instru_;
         // cout << instru_ << "   " << previous_instruction << endl;
         if (instruction_repeated && rle_count < 8)
         { // r/e
-            // cout << " by rle" << endl;
+            cout << " by rle" << endl;
             string rle_position = To_binary(rle_count, 3);
             previous_instruction = instru_;
             // send instruction to rle algo
@@ -314,7 +314,7 @@ vector<string> Compression_algo(vector<string> &code_to_commpress, vector<string
                 compressed_code.push_back(to_push);
                 previous_instruction = instru_;
                 by_dictionary = true;
-                // cout << " by dic" << endl;
+                cout << " by dic" << endl;
             }
         }
         if (!instruction_repeated && !by_dictionary && !by_rle)
@@ -323,7 +323,7 @@ vector<string> Compression_algo(vector<string> &code_to_commpress, vector<string
             {   
                 
                 string xor_instru = to_string(to_bitset(bit) ^ to_bitset(instru_));
-                int position = Get_index(dictionary, instru_);
+                int position = Get_index(dictionary, xor_instru);
                 if (position >= 0){
                 // {   cout << "I was here too" << endl; 
                     rle_count = 0;
@@ -336,16 +336,17 @@ vector<string> Compression_algo(vector<string> &code_to_commpress, vector<string
                     string to_push2 = "010" + bitmask_location + bitmask_type + dictionary_index;
                     compressed_code.push_back(to_push2);
                     previous_instruction = instru_;
-                    // cout << " by bitmask" << endl;
+                    cout << " by bitmask" << endl;
                 }
             }
         }
+
         // else
         // {   
         //     previous_instruction = instru_;
         //     rle_count = 0;
         // }
-        // cout << endl;
+        cout << endl;
     }
     for(string i : compressed_code){
         cout << i << endl;
