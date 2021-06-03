@@ -160,6 +160,86 @@ vector<string> GetFrequency(const vector<string> &vec)
     return dictionary;
 }
 
+
+int Get_index(vector<string> v, string K)
+{
+    auto it = find(v.begin(), v.end(), K);
+    int index;
+    if (it != v.end())
+    {
+        index = it - v.begin();
+    }
+    else {
+       index = -1;   
+    }
+    return index;
+}
+
+// string In_dictionary(const string &instruction,const vector<string> &dictionary){
+//     string compressed_instuction;
+
+
+//     return compressed_instuction;
+// }
+
+
+std::string To_binary(int n,int len_)
+{
+    std::string r;
+    while(n!=0) {r=(n%2==0 ?"0":"1")+r; n/=2;}
+
+    while( r.length() < len_){
+        r = "0" + r;
+    }
+    return r;
+}
+
+
+vector<string> Compression_algo(vector<string> &code_to_commpress, vector<string> dictionary){
+    vector<string> compressed_code;
+    bool instruction_repeated = false;
+    int rle_count = 0;
+    string previous_instruction ;
+    
+    string not_compressed_header    = "000";
+    string rle_header               = "001";
+    string bitmask_header           = "010";
+    string one_bit_header           = "011";
+    string two_bit_cons_header      = "100";
+    string four_bit_cons_header     = "101";
+    string two_bit_anywhere_header  = "110";
+    string direct_header            = "111";
+
+
+
+    for (const string &instru_ : code_to_commpress ){
+        instruction_repeated = previous_instruction == instru_;
+        cout << instru_ << "   "  << previous_instruction << endl;
+        if(instruction_repeated && rle_count < 8){ // r/e
+            string rle_position = To_binary(rle_count,3);
+            previous_instruction = instru_;
+            // send instruction to rle algo 
+            cout << rle_position << endl;
+            ++rle_count;
+        }
+        else if (!instruction_repeated){  //dictionary
+            int position = Get_index(dictionary,instru_);
+            if ( position >= 0){
+                string dictionary_index = To_binary(position,4);
+                // instruction_compressed = true;
+                previous_instruction = instru_;
+            }
+        else if (!instruction_repeated) {
+            previous_instruction = instru_;
+        }
+
+        }
+    }
+
+    return compressed_code;
+}
+
+
 int main(int argc, char **argv)
 {
 
@@ -167,11 +247,13 @@ int main(int argc, char **argv)
 
     if (argument == 0)
     {
-        vector<string> code_to_compress, dictionary;
+        vector<string> code_to_compress, dictionary, compressed_code;
         
         code_to_compress = ReadFile("original.txt");  // read the file to be compressed
 
         dictionary = GetFrequency(code_to_compress);  // get the dictionary
+
+        compressed_code = Compression_algo(code_to_compress, dictionary);
     }
 
     if (argument == 2)
