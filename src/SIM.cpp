@@ -11,6 +11,8 @@ Assignment 5: Code compression and decompression
 #include <stdlib.h>
 #include <map>
 #include <algorithm>
+#include <bitset>
+#include <cmath>
 
 using namespace std;
 
@@ -203,9 +205,11 @@ std::string To_binary(int n, int len_)
     return r;
 }
 
-string operator * (string a, unsigned int b) {  
+string operator*(string a, unsigned int b)
+{
     string output = "";
-    while (b--) {
+    while (b--)
+    {
         output += a;
     }
     return output;
@@ -218,19 +222,38 @@ intput:
 outputs:
     bitmask: vector<string> of all possible bitmasks
 */
-vector<string> Get_bitmask(const vector<string> &vec_){
+vector<string> Get_bitmask(const vector<string> &vec_)
+{
     string str = "0";
     vector<string> bitmask;
     string temp_holder;
-    for(string pattern : vec_){
-        for(int i = 0; i < 29; i++){
-            temp_holder = (str*i) + pattern + (str*(28-i)) ;
+    for (string pattern : vec_)
+    {
+        for (int i = 0; i < 29; i++)
+        {
+            temp_holder = (str * i) + pattern + (str * (28 - i));
             bitmask.push_back(temp_holder);
         }
     }
     return bitmask;
 }
 
+bitset<32> to_bitset(std::string s)
+{
+    auto binary = [](char c)
+    { return c == '0' || c == '1'; };
+    auto not_binary = [binary](char c)
+    { return !binary(c); };
+
+    s.erase(std::remove_if(begin(s), end(s), not_binary), end(s));
+
+    return std::bitset<32>(s);
+}
+
+string to_string(std::bitset<32> bs)
+{
+    return bs.to_string();
+}
 
 vector<string> Compression_algo(vector<string> &code_to_commpress, vector<string> dictionary)
 {
@@ -257,18 +280,28 @@ vector<string> Compression_algo(vector<string> &code_to_commpress, vector<string
                                         "1011",
                                         "1111"};
     vector<string> bitmasks = Get_bitmask(possible_bitmasks);
-
+    // cout << bitmasks.size() << endl;
+    // for (string i : bitmasks){
+    //     cout << i << endl;
+    // }
+    
     for (const string &instru_ : code_to_commpress)
-    {
+    {   bool by_dictionary = false;
+        bool by_rle = false;
         instruction_repeated = previous_instruction == instru_;
+        // cout << instruction_repeated << "  instruction  " << instru_;
         // cout << instru_ << "   " << previous_instruction << endl;
         if (instruction_repeated && rle_count < 8)
         { // r/e
+            // cout << " by rle" << endl;
             string rle_position = To_binary(rle_count, 3);
             previous_instruction = instru_;
             // send instruction to rle algo
             // cout << rle_position << endl;
+            string to_push = "001" + rle_position;
+            compressed_code.push_back(to_push);
             ++rle_count;
+            by_rle = true;
         }
         else if (!instruction_repeated)
         { //dictionary
@@ -277,22 +310,46 @@ vector<string> Compression_algo(vector<string> &code_to_commpress, vector<string
             {
                 rle_count = 0;
                 string dictionary_index = To_binary(position, 4);
-                // instruction_compressed = true;
+                string to_push = "111" + dictionary_index;
+                compressed_code.push_back(to_push);
                 previous_instruction = instru_;
+                by_dictionary = true;
+                // cout << " by dic" << endl;
             }
         }
-        else if (!instruction_repeated)
+        if (!instruction_repeated && !by_dictionary && !by_rle)
         { // bitmask
-
-            previous_instruction = instru_;
-            rle_count = 0;
+            for (string &bit : bitmasks)
+            {   
+                
+                string xor_instru = to_string(to_bitset(bit) ^ to_bitset(instru_));
+                int position = Get_index(dictionary, instru_);
+                if (position >= 0){
+                // {   cout << "I was here too" << endl; 
+                    rle_count = 0;
+                    int temp_location = Get_index(bitmasks,bit);
+                    int bitmask_location_temp = temp_location%29;
+                    string bitmask_location = To_binary(bitmask_location_temp,5);
+                    int bit_type_idx = floor(bitmask_location_temp/29);
+                    string bitmask_type = To_binary(bit_type_idx,4);
+                    string dictionary_index = To_binary(position, 4);
+                    string to_push2 = "010" + bitmask_location + bitmask_type + dictionary_index;
+                    compressed_code.push_back(to_push2);
+                    previous_instruction = instru_;
+                    // cout << " by bitmask" << endl;
+                }
+            }
         }
-        else
-        {
-            rle_count = 0;
-        }
+        // else
+        // {   
+        //     previous_instruction = instru_;
+        //     rle_count = 0;
+        // }
+        // cout << endl;
     }
-
+    for(string i : compressed_code){
+        cout << i << endl;
+    }
     return compressed_code;
 }
 
