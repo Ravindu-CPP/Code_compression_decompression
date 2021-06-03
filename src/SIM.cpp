@@ -50,40 +50,42 @@ bool cmp(pair<string, int> &a,
 }
 
 
-
-auto Sort_dictionary(const map<string, int> frequency_set, vector<string> &vec_)
-{   // define the variables
+/*
+Sorts the dictionary in the descending order of the frequency of occurance;
+if two dictionary entries have the same occuarance rate give priority to the entry that came first
+inputs:
+    frequency_set: map<string,int> which contains the frequency of each instruction
+    vec_ : vector<string> contains the order of occurance of each unique instruction
+    dictionary_siz: int which tells the size of the dictionary to be compressed
+*/
+vector<string> Sort_dictionary(const map<string, int> frequency_set, vector<string> &vec_ , int &dictionary_size)
+{ 
     vector<pair<string, int>> sorted_dictionary;
     vector<pair<string, int>> similar_frequency;
     
-    //sort the dictionary in the descending order
     for (auto &it : frequency_set)
-    {
+    {   //sort the dictionary in the descending order
         sorted_dictionary.push_back(it);
     }
     sort(sorted_dictionary.begin(), sorted_dictionary.end(), cmp);
 
 
-    // get the similar frequency dictionary values to another vector
-    int size_ = sorted_dictionary.size();
+    int size_ = sorted_dictionary.size();  
     for (int i = 0; i < size_; i++)
-    {
+    {   // get the similar frequency dictionary values to another vector
         if (sorted_dictionary[i].second == sorted_dictionary[i + 1].second || sorted_dictionary[i].second == sorted_dictionary[i - 1].second)
         {
             similar_frequency.push_back(sorted_dictionary[i]);
         }
     }
-    int similar_size = similar_frequency.size();
 
-    std::map<int , unsigned int> h;
-
+    std::map<int , unsigned int> h;          // get the number of occurances of each frequency
     for (auto const & x : sorted_dictionary)
     {
         ++h[x.second];
     }
 
-    vector<string> dictionary;
-
+    vector<string> dictionary;  // define the dictionary to be returned
     for(auto &it : sorted_dictionary){
         int count_ = h[it.second];  // it.first is the instruction code being checked
         if (count_> 1){
@@ -91,7 +93,7 @@ auto Sort_dictionary(const map<string, int> frequency_set, vector<string> &vec_)
             int added = 0;
             for(int i = 0; i < count_; i++){
                 for (string j: vec_){
-                    bool it2 = false;
+
                     if(auto it1 = any_of(similar_frequency.begin(), similar_frequency.end(), [&j](const pair<string, int>& similar_frequency)
                         { return similar_frequency.first == j; })){
                             int index_ = 0;
@@ -104,8 +106,7 @@ auto Sort_dictionary(const map<string, int> frequency_set, vector<string> &vec_)
                             int temp_freq = similar_frequency[index_].second;
                             if(temp_freq == k){
                                 dictionary.push_back(j);
-                                //remove j from the vec_
-                                remove(vec_.begin(), vec_.end(), j);
+                                remove(vec_.begin(), vec_.end(), j); //remove j from the vec_
                                 added = 1;
                                 break;
                             }
@@ -115,14 +116,13 @@ auto Sort_dictionary(const map<string, int> frequency_set, vector<string> &vec_)
                             }
                             
                         }
-                   
             }
         }
         else{
             dictionary.push_back(it.first);
         }
     }
-
+    dictionary.resize(dictionary_size); // get the size of the desired dictionary
 
     return dictionary;
 }
@@ -140,6 +140,7 @@ vector<string> GetFrequency(const vector<string> &vec)
     map<string, int> frequency_set;
     vector<string> insertion_order;
     vector<string> dictionary;
+    int dictionary_size = 16;
 
     for (const string &line_ : vec)
     {
@@ -154,11 +155,90 @@ vector<string> GetFrequency(const vector<string> &vec)
             insertion_order.push_back(line_);
         }
     }
-
-    dictionary = Sort_dictionary(frequency_set, insertion_order);
+    dictionary = Sort_dictionary(frequency_set, insertion_order, dictionary_size);
 
     return dictionary;
 }
+
+
+int Get_index(vector<string> v, string K)
+{
+    auto it = find(v.begin(), v.end(), K);
+    int index;
+    if (it != v.end())
+    {
+        index = it - v.begin();
+    }
+    else {
+       index = -1;   
+    }
+    return index;
+}
+
+// string In_dictionary(const string &instruction,const vector<string> &dictionary){
+//     string compressed_instuction;
+
+
+//     return compressed_instuction;
+// }
+
+
+std::string To_binary(int n,int len_)
+{
+    std::string r;
+    while(n!=0) {r=(n%2==0 ?"0":"1")+r; n/=2;}
+
+    while( r.length() < len_){
+        r = "0" + r;
+    }
+    return r;
+}
+
+
+vector<string> Compression_algo(vector<string> &code_to_commpress, vector<string> dictionary){
+    vector<string> compressed_code;
+    bool instruction_repeated = false;
+    int rle_count = 0;
+    string previous_instruction ;
+    
+    string not_compressed_header    = "000";
+    string rle_header               = "001";
+    string bitmask_header           = "010";
+    string one_bit_header           = "011";
+    string two_bit_cons_header      = "100";
+    string four_bit_cons_header     = "101";
+    string two_bit_anywhere_header  = "110";
+    string direct_header            = "111";
+
+
+
+    for (const string &instru_ : code_to_commpress ){
+        instruction_repeated = previous_instruction == instru_;
+        cout << instru_ << "   "  << previous_instruction << endl;
+        if(instruction_repeated && rle_count < 8){ // r/e
+            string rle_position = To_binary(rle_count,3);
+            previous_instruction = instru_;
+            // send instruction to rle algo 
+            cout << rle_position << endl;
+            ++rle_count;
+        }
+        else if (!instruction_repeated){  //dictionary
+            int position = Get_index(dictionary,instru_);
+            if ( position >= 0){
+                string dictionary_index = To_binary(position,4);
+                // instruction_compressed = true;
+                previous_instruction = instru_;
+            }
+        else if (!instruction_repeated) {
+            previous_instruction = instru_;
+        }
+
+        }
+    }
+
+    return compressed_code;
+}
+
 
 int main(int argc, char **argv)
 {
@@ -167,12 +247,13 @@ int main(int argc, char **argv)
 
     if (argument == 0)
     {
-        vector<string> code_to_compress, dictionary;
+        vector<string> code_to_compress, dictionary, compressed_code;
         
         code_to_compress = ReadFile("original.txt");  // read the file to be compressed
 
         dictionary = GetFrequency(code_to_compress);  // get the dictionary
 
+        compressed_code = Compression_algo(code_to_compress, dictionary);
     }
 
     if (argument == 2)
