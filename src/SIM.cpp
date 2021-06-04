@@ -296,7 +296,7 @@ bool Consecutive(const string &s)
     int cons_it = 0;
     bool consec_ = false;
     while (cons_it < s.length())
-    {   
+    {
         ++cons_it;
         if (s[cons_it] == '0')
         {
@@ -316,7 +316,28 @@ bool Consecutive(const string &s)
     return consec_;
 }
 
-
+vector<int> Get2LocationBits(const string &string_to_check)
+{
+    int first_loc = 0;
+    int second_loc = 0;
+    for (int po_s = 0; po_s < string_to_check.length(); po_s++)
+    {
+        if (string_to_check[po_s] == '0')
+        {
+            continue;
+        }
+        else if (first_loc == 0 && string_to_check[po_s] == '1')
+        {
+            first_loc = po_s;
+        }
+        else if (first_loc != 0 && string_to_check[po_s] == '1')
+        {
+            second_loc = po_s;
+        }
+    }
+    vector<int> loc_cations{first_loc, second_loc};
+    return loc_cations;
+}
 
 vector<string> Compression_algo(vector<string> &code_to_compress, vector<string> dictionary)
 {
@@ -365,16 +386,21 @@ vector<string> Compression_algo(vector<string> &code_to_compress, vector<string>
             previous_instruction = instru_;
             // send instruction to rle algo
             // cout << rle_position << endl;
-            string to_push = "001" + rle_position;
+            string to_push = "001" + rle_position + " by rle";
             compressed_code.push_back(to_push);
             ++rle_count;
             local_count += 1;
         }
         else if (!instruction_repeated || rle_count == 8)
         {
+            bool two_bit_anywhere_present = false;
+            bool bitmask_present = false;
             previous_instruction = instru_;
             rle_count = 0;
+            // string to_push_two = "";
+            // string to_push_bit_mask = "";
             local_count += 1;
+
             //dictionary
             if (compression_method == "dictionary")
             {
@@ -383,9 +409,9 @@ vector<string> Compression_algo(vector<string> &code_to_compress, vector<string>
                 if (position >= 0)
                 {
                     string dictionary_index = To_binary(position, 4);
-                    string to_push = "111" + dictionary_index;
+                    string to_push = "111" + dictionary_index + " by dicitionary";
                     compressed_code.push_back(to_push);
-                    // local_count += 1;
+
                     // cout << " by dic" << endl;
                 }
                 else
@@ -393,6 +419,8 @@ vector<string> Compression_algo(vector<string> &code_to_compress, vector<string>
                     compression_method = "mismatch";
                 }
             }
+
+            //bit mismactch compression
             if (compression_method == "mismatch")
             {
                 for (string &dic_entry : dictionary)
@@ -405,25 +433,67 @@ vector<string> Compression_algo(vector<string> &code_to_compress, vector<string>
                         int position = Get_index(dictionary, dic_entry);
                         string dictionary_index = To_binary(position, 4);
                         string mis_loc = GetMisLocation(xor_instru);
-                        string to_push = "011" + mis_loc + dictionary_index + " mismatch";
+                        string to_push = "011" + mis_loc + dictionary_index + " mismatch1";
                         compressed_code.push_back(to_push);
+                        compression_method = "mismatch";
                         // cout << " by mismatch 1" << endl;
                         break;
                     }
-                    if (bit_mismatch == 2){
+
+                    if (bit_mismatch == 2)
+                    {
                         bool consec_ = Consecutive(xor_instru);
-                        if (consec_){
+                        if (consec_)
+                        {
                             int position = Get_index(dictionary, dic_entry);
                             string dictionary_index = To_binary(position, 4);
                             string mis_loc = GetMisLocation(xor_instru);
-                            string to_push = "011" + mis_loc + dictionary_index + " mismatch2";
+                            string to_push = "011" + mis_loc + dictionary_index + " mismatch2cons";
                             compressed_code.push_back(to_push);
+                            compression_method = "mismatch";
                             // cout << " by mismatch 2" << endl;
                             break;
                         }
-                        else{
-                            
+                        else
+                        {
+                            vector<int> loc_cations = Get2LocationBits(xor_instru);
+                            string first_bit_position = To_binary(loc_cations[0], 5);
+                            string second_bit_position = To_binary(loc_cations[1], 5);
+                            int position = Get_index(dictionary, dic_entry);
+                            string dictionary_index = To_binary(position, 4);
+                            string to_push_two = "110" + first_bit_position + second_bit_position + dictionary_index + " 2 anywhere";
+                            // compressed_code.push_back(to_push_two);
+                            two_bit_anywhere_present = true;
                             cout << "hi" << endl;
+                            compression_method = "mismatch";
+
+                            for (string &bit : bitmasks)
+                            {
+                                string xor_instru2 = to_string(to_bitset(bit) ^ to_bitset(instru_));
+                                int position = Get_index(dictionary, xor_instru2);
+                                if (position >= 0)
+                                {
+                                    // {   cout << "I was here too" << endl;
+                                    rle_count = 0;
+                                    int temp_location = Get_index(bitmasks, bit);
+                                    int bitmask_location_temp = temp_location % 29;
+                                    string bitmask_location = To_binary(bitmask_location_temp, 5);
+                                    int bit_type_idx = floor(bitmask_location_temp / 29);
+                                    string bitmask_type = To_binary(bit_type_idx, 4);
+                                    string dictionary_index = To_binary(position, 4);
+                                    string to_push_bit_mask = "010" + bitmask_location + bitmask_type + dictionary_index + " by bitmask";
+                                    compression_method = "bitmask";
+                                    compressed_code.push_back(to_push_bit_mask);
+                                    bitmask_present = true;
+                                    break;
+                                }
+                                else
+                                {
+                                    compressed_code.push_back(to_push_two);
+                                    break;
+                                }
+                            }
+                            break;
                         }
                     }
                     if (bit_mismatch == 4)
@@ -433,6 +503,7 @@ vector<string> Compression_algo(vector<string> &code_to_compress, vector<string>
                         string mis_loc = GetMisLocation(xor_instru);
                         string to_push = "100" + mis_loc + dictionary_index + " mismatch4";
                         compressed_code.push_back(to_push);
+                        compression_method = "mismatch";
                         // cout << " by mismatch 4" << endl;
                         break;
                     }
@@ -442,11 +513,12 @@ vector<string> Compression_algo(vector<string> &code_to_compress, vector<string>
                     }
                 }
             }
+
+            //bitmask
             if (compression_method == "bitmask")
-            { // bitmask
+            {
                 for (string &bit : bitmasks)
                 {
-
                     string xor_instru = to_string(to_bitset(bit) ^ to_bitset(instru_));
                     int position = Get_index(dictionary, xor_instru);
                     if (position >= 0)
@@ -459,33 +531,26 @@ vector<string> Compression_algo(vector<string> &code_to_compress, vector<string>
                         int bit_type_idx = floor(bitmask_location_temp / 29);
                         string bitmask_type = To_binary(bit_type_idx, 4);
                         string dictionary_index = To_binary(position, 4);
-                        string to_push2 = "010" + bitmask_location + bitmask_type + dictionary_index;
-                        compressed_code.push_back(to_push2);
-                        // local_count += 1;
-                        // cout << " by bitmask" << endl;
+                        string to_push_bit_mask = "010" + bitmask_location + bitmask_type + dictionary_index + " by bitmask";
+                        compression_method = "bitmask";
+                        compressed_code.push_back(to_push_bit_mask);
+                        bitmask_present = true;
                         break;
                     }
                     else
                     {
-                        compression_method = "mismatch";
+                        compression_method = "uncompresses";
                     }
                 }
             }
+            if (compression_method == "uncompresses")
+            {
+                string to_push = "000" + instru_ + " uncompressed";
+                compressed_code.push_back(to_push);
+            }
         }
-        // else if(go_mismatch) {
-        //     cout << "hi" << endl;
-        //     local_count += 1;
-        // }
-        // else{
-        //     cout << "bye" << endl;
-        // }
-        // else
-        // {
-        //     previous_instruction = instru_;
-        //     rle_count = 0;
-        // }
-        // cout << endl;
     }
+
     for (string i : compressed_code)
     {
         cout << i << endl;
