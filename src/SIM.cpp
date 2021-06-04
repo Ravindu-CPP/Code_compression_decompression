@@ -619,12 +619,15 @@ string Concat_(const vector<string> &compressed__code)
     return cont;
 }
 
+/*
+remove this function
+*/
 void Write_file(string &to_write1, const string &to_write2)
 {
     ofstream output_;
     string to_str = "0";
-    int to_stuff = to_write1.size()%32;
-    to_write1 = to_write1 + (to_str*(32-to_stuff));
+    int to_stuff = to_write1.size() % 32;
+    to_write1 = to_write1 + (to_str * (32 - to_stuff));
 
     output_.open("cout.txt");
     if (!output_)
@@ -663,6 +666,53 @@ void Write_file(string &to_write1, const string &to_write2)
     output_.close();
 }
 
+auto Separate_x(const string &to_seperate)
+{
+    string compressed_code, dict;
+    map<string, string> dictionary_;
+    bool to_break = false;
+
+    for (int i = 0; i < to_seperate.length(); i++)
+    {
+        if (to_seperate[i] != 'x' && !to_break)
+        {
+            compressed_code += to_seperate[i];
+        }
+        else if (to_seperate[i] == 'x')
+        {
+            to_break = true;
+        }
+        else if (to_break)
+        {
+            dict += to_seperate[i];
+        }
+    }
+    int cnt = 0;
+    string temp_dict;
+    for (int i = 0; i < dict.length(); i++)
+    {
+        if (i == 0 || i % 32 != 0)
+        {
+            temp_dict += dict[i];
+        }
+        else
+        {
+            string key_ = To_binary(cnt, 4);
+            dictionary_.insert(pair<string, string>(key_, temp_dict));
+            ++cnt;
+            temp_dict = dict[i];
+        }
+    }
+    string key_ = To_binary(cnt, 4);
+    dictionary_.insert(pair<string, string>(key_, temp_dict));
+
+    // for (auto itr = dictionary_.begin(); itr != dictionary_.end(); ++itr) {
+    //     cout << itr->first
+    //          << '\t' << itr->second << '\n';
+    // }
+    return compressed_code, dictionary_;
+}
+
 int main(int argc, char **argv)
 {
 
@@ -680,16 +730,22 @@ int main(int argc, char **argv)
 
         string to_print = Concat_(compressed_code);
         string to_print2 = Concat_(dictionary);
-        
-        Write_file(to_print,to_print2);             // write the compressed code to cout.txt
 
+        Write_file(to_print, to_print2); // write the compressed code to cout.txt
     }
 
-    if (argument == 2)
+    if (argument == 0)
     {
-        vector<string> code_to_decompress;
+        vector<string> code_to_decompress, uncompressed_code;
+        map<string, string> dictionary_;
+        string compressed_code;
 
         code_to_decompress = ReadFile("compressed.txt");
+        string total_ = Concat_(code_to_decompress);
+
+        compressed_code, dictionary_ = Separate_x(total_);
+
+        // uncompressed_code = Decompression_algo(compressed_code,dictionary_);
     }
     return 0;
 }
