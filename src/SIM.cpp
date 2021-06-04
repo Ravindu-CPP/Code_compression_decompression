@@ -296,7 +296,8 @@ bool Consecutive(const string &s)
     int cons_it = 0;
     bool consec_ = false;
     while (cons_it < s.length())
-    {
+    {   
+        ++cons_it;
         if (s[cons_it] == '0')
         {
             continue;
@@ -314,6 +315,8 @@ bool Consecutive(const string &s)
     }
     return consec_;
 }
+
+
 
 vector<string> Compression_algo(vector<string> &code_to_compress, vector<string> dictionary)
 {
@@ -352,12 +355,12 @@ vector<string> Compression_algo(vector<string> &code_to_compress, vector<string>
         string compression_method = "dictionary";
         instruction_repeated = previous_instruction == instru_;
         count__ += 1;
-        cout << instruction_repeated << "  instruction  " << instru_;
+        // cout << instruction_repeated << "  instruction  " << instru_;
         // cout << instru_ << "   " << previous_instruction << endl;
         if (instruction_repeated && rle_count < 8)
         {
             // r/e
-            cout << " by rle" << endl;
+            // cout << " by rle" << endl;
             string rle_position = To_binary(rle_count, 3);
             previous_instruction = instru_;
             // send instruction to rle algo
@@ -383,7 +386,7 @@ vector<string> Compression_algo(vector<string> &code_to_compress, vector<string>
                     string to_push = "111" + dictionary_index;
                     compressed_code.push_back(to_push);
                     // local_count += 1;
-                    cout << " by dic" << endl;
+                    // cout << " by dic" << endl;
                 }
                 else
                 {
@@ -404,24 +407,25 @@ vector<string> Compression_algo(vector<string> &code_to_compress, vector<string>
                         string mis_loc = GetMisLocation(xor_instru);
                         string to_push = "011" + mis_loc + dictionary_index + " mismatch";
                         compressed_code.push_back(to_push);
-                        cout << " by mismatch 1" << endl;
+                        // cout << " by mismatch 1" << endl;
                         break;
                     }
-                    // if (bit_mismatch == 2){
-                    //     bool consec_ = Consecutive(xor_instru);
-                    //     if (consec_){
-                    //         int position = Get_index(dictionary, dic_entry);
-                    //         string dictionary_index = To_binary(position, 4);
-                    //         string mis_loc = GetMisLocation(xor_instru);
-                    //         string to_push = "011" + mis_loc + dictionary_index + " mismatch2";
-                    //         compressed_code.push_back(to_push);
-                    //         cout << " by mismatch 1" << endl;
-                    //         break;
-                    //     }
-                    //     else{
-                    //         cout << "hi" << endl;
-                    //     }
-                    // }
+                    if (bit_mismatch == 2){
+                        bool consec_ = Consecutive(xor_instru);
+                        if (consec_){
+                            int position = Get_index(dictionary, dic_entry);
+                            string dictionary_index = To_binary(position, 4);
+                            string mis_loc = GetMisLocation(xor_instru);
+                            string to_push = "011" + mis_loc + dictionary_index + " mismatch2";
+                            compressed_code.push_back(to_push);
+                            // cout << " by mismatch 2" << endl;
+                            break;
+                        }
+                        else{
+                            
+                            cout << "hi" << endl;
+                        }
+                    }
                     if (bit_mismatch == 4)
                     {
                         int position = Get_index(dictionary, dic_entry);
@@ -429,7 +433,7 @@ vector<string> Compression_algo(vector<string> &code_to_compress, vector<string>
                         string mis_loc = GetMisLocation(xor_instru);
                         string to_push = "100" + mis_loc + dictionary_index + " mismatch4";
                         compressed_code.push_back(to_push);
-                        cout << " by mismatch 2" << endl;
+                        // cout << " by mismatch 4" << endl;
                         break;
                     }
                     else
@@ -480,7 +484,7 @@ vector<string> Compression_algo(vector<string> &code_to_compress, vector<string>
         //     previous_instruction = instru_;
         //     rle_count = 0;
         // }
-        cout << endl;
+        // cout << endl;
     }
     for (string i : compressed_code)
     {
