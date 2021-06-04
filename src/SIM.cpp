@@ -41,12 +41,7 @@ vector<string> ReadFile(string path_)
     return code_;
 }
 
-/*
-
-
-*/
-bool cmp(pair<string, int> &a,
-         pair<string, int> &b)
+bool Compare_(pair<string, int> &a, pair<string, int> &b)
 {
     return a.second > b.second;
 }
@@ -68,7 +63,7 @@ vector<string> Sort_dictionary(const map<string, int> frequency_set, vector<stri
     { //sort the dictionary in the descending order
         sorted_dictionary.push_back(it);
     }
-    sort(sorted_dictionary.begin(), sorted_dictionary.end(), cmp);
+    sort(sorted_dictionary.begin(), sorted_dictionary.end(), Compare_);
 
     int size_ = sorted_dictionary.size();
     for (int i = 0; i < size_; i++)
@@ -559,7 +554,8 @@ vector<string> Compression_algo(const vector<string> &code_to_compress, vector<s
                             compression_method = "mismatch";
                             break;
                         }
-                        else{
+                        else
+                        {
                             compression_method = "bitmask";
                         }
                     }
@@ -613,12 +609,66 @@ vector<string> Compression_algo(const vector<string> &code_to_compress, vector<s
     return compressed_code;
 }
 
+string Concat_(const vector<string> &compressed__code)
+{
+    string cont;
+    for (string i : compressed__code)
+    {
+        cont += i;
+    }
+    return cont;
+}
+
+void Write_file(string &to_write1, const string &to_write2)
+{
+    ofstream output_;
+    string to_str = "0";
+    int to_stuff = to_write1.size()%32;
+    to_write1 = to_write1 + (to_str*(32-to_stuff));
+
+    output_.open("cout.txt");
+    if (!output_)
+    {
+        cerr << "Error: file could not be opened" << endl;
+        exit(1);
+    }
+
+    for (int i = 0; i < to_write1.length(); ++i)
+    {
+        if (i % 32 != 0 || i == 0)
+        {
+            output_ << to_write1[i];
+        }
+        else
+        {
+            output_ << "\n"
+                    << to_write1[i];
+        }
+    }
+    output_ << "\n"
+            << "xxxx" << endl;
+
+    for (int i = 0; i < to_write2.length(); ++i)
+    {
+        if (i % 32 != 0 || i == 0)
+        {
+            output_ << to_write2[i];
+        }
+        else
+        {
+            output_ << "\n"
+                    << to_write2[i];
+        }
+    }
+    output_.close();
+}
+
 int main(int argc, char **argv)
 {
 
     int argument = strtol(argv[1], NULL, 10);
 
-    if (argument == 0)
+    if (argument == 1)
     {
         vector<string> code_to_compress, dictionary, compressed_code;
 
@@ -626,7 +676,13 @@ int main(int argc, char **argv)
 
         dictionary = GetFrequency(code_to_compress); // get the dictionary
 
-        compressed_code = Compression_algo(code_to_compress, dictionary);
+        compressed_code = Compression_algo(code_to_compress, dictionary); // compress the instructions
+
+        string to_print = Concat_(compressed_code);
+        string to_print2 = Concat_(dictionary);
+        
+        Write_file(to_print,to_print2);             // write the compressed code to cout.txt
+
     }
 
     if (argument == 2)
