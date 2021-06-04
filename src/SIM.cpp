@@ -509,33 +509,90 @@ vector<string> Compression_algo(const vector<string> &code_to_compress, vector<s
                             string dictionary_index = To_binary(position, 4);
                             string to_push_two = "110" + first_bit_position + second_bit_position + dictionary_index;
                             compression_method = "mismatch";
-
-                            for (string &bit : bitmasks)
+                            /*
+                            hi
+                            hihi
+                            hi
+                            hi
+                            */
+                            for (string &dic_entry : dictionary)
                             {
-                                /* 
+                                string xor_instru2 = to_string(to_bitset(dic_entry) ^ to_bitset(instru_));
+                                int bit_mismatch2 = AddBitStream(xor_instru2); // check bit mismatches
+
+                                if (bit_mismatch2 == 1)
+                                {
+                                    int position = Get_index(dictionary, dic_entry);
+                                    string dictionary_index = To_binary(position, 4);
+                                    string mis_loc = GetMisLocation(xor_instru2);
+                                    string to_push = "011" + mis_loc + dictionary_index;
+                                    compressed_code.push_back(to_push);
+                                    compression_method = "mismatch";
+                                    // cout << " by mismatch 1" << endl;
+                                    break;
+                                }
+                                if (bit_mismatch2 == 2)
+                                {
+                                    bool consec_ = Consecutive(xor_instru2);
+                                    if (consec_) //2bit consecutive mismatches
+                                    {
+                                        int position = Get_index(dictionary, dic_entry);
+                                        string dictionary_index = To_binary(position, 4);
+                                        string mis_loc = GetMisLocation(xor_instru2);
+                                        string to_push = "011" + mis_loc + dictionary_index;
+                                        compressed_code.push_back(to_push);
+                                        compression_method = "mismatch";
+                                        break;
+                                    }
+                                }
+                                if (bit_mismatch2 == 4)
+                                { //4bit consecutive mismatches
+                                    bool check_4 = Consecutive_four(xor_instru2);
+                                    if (check_4)
+                                    {
+                                        int position = Get_index(dictionary, dic_entry);
+                                        string dictionary_index = To_binary(position, 4);
+                                        string mis_loc = GetMisLocation(xor_instru2);
+                                        string to_push = "100" + mis_loc + dictionary_index;
+                                        compressed_code.push_back(to_push);
+                                        compression_method = "mismatch";
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        compression_method = "bitmask";
+                                    }
+                                }
+                                if (Get_index(dictionary, dic_entry) == dictionary.size())
+                                {
+                                    for (string &bit : bitmasks)
+                                    {
+                                        /* 
                                 check whether if it is possible to do the bitmask compression 
                                 for the compression of the 2bit anywhere compression
                                 */
-                                string xor_instru2 = to_string(to_bitset(bit) ^ to_bitset(instru_));
-                                int position = Get_index(dictionary, xor_instru2);
-                                if (position >= 0)
-                                {
-                                    rle_count = 0;
-                                    int temp_location = Get_index(bitmasks, bit);
-                                    int bitmask_location_temp = temp_location % 29;
-                                    string bitmask_location = To_binary(bitmask_location_temp, 5);
-                                    int bit_type_idx = floor(bitmask_location_temp / 29);
-                                    string bitmask_type = To_binary(bit_type_idx, 4);
-                                    string dictionary_index = To_binary(position, 4);
-                                    string to_push_bit_mask = "010" + bitmask_location + bitmask_type + dictionary_index;
-                                    compression_method = "bitmask";
-                                    compressed_code.push_back(to_push_bit_mask);
-                                    break;
-                                }
-                                else
-                                {
-                                    compressed_code.push_back(to_push_two);
-                                    break;
+                                        string xor_instru2 = to_string(to_bitset(bit) ^ to_bitset(instru_));
+                                        int position = Get_index(dictionary, xor_instru2);
+                                        if (position >= 0)
+                                        {
+                                            rle_count = 0;
+                                            int temp_location = Get_index(bitmasks, bit);
+                                            int bitmask_location_temp = temp_location % 29;
+                                            string bitmask_location = To_binary(bitmask_location_temp, 5);
+                                            int bit_type_idx = floor(bitmask_location_temp / 29);
+                                            string bitmask_type = To_binary(bit_type_idx, 4);
+                                            string dictionary_index = To_binary(position, 4);
+                                            string to_push_bit_mask = "010" + bitmask_location + bitmask_type + dictionary_index;
+                                            compression_method = "bitmask";
+                                            compressed_code.push_back(to_push_bit_mask);
+                                            break;
+                                        }
+                                        else
+                                        {
+                                            compressed_code.push_back(to_push_two);
+                                            break;
+                                        }
+                                    }
                                 }
                             }
                             break;
