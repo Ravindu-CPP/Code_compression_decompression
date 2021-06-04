@@ -347,9 +347,29 @@ bool Consecutive(const string &str_2)
     return consec_;
 }
 
-bool Consecutive_four(const string &str_4){
-    bool found_ = false;
-    return found_;
+bool Consecutive_four(const string &str_4)
+{
+    int cons_it = 0;
+    bool consec_4 = false;
+    while (cons_it < str_4.length())
+    {
+        ++cons_it;
+        if (str_4[cons_it] == '0')
+        {
+            continue;
+        }
+        else if (str_4[cons_it] == '1' && str_4[cons_it + 1] == '1' && str_4[cons_it + 2] == '1' && str_4[cons_it + 3] == '1')
+        {
+            consec_4 = true;
+            break;
+        }
+        else
+        {
+            consec_4 = false;
+            break;
+        }
+    }
+    return consec_4;
 }
 
 /*
@@ -428,10 +448,8 @@ vector<string> Compression_algo(const vector<string> &code_to_compress, vector<s
         }
         else if (!instruction_repeated || rle_count == 8)
         {
-            bool two_bit_anywhere_present = false;
-            bool bitmask_present = false;
             previous_instruction = instru_;
-            // rle_count = 0;
+            rle_count = 0;
             // local_count += 1;
 
             //dictionary
@@ -495,7 +513,6 @@ vector<string> Compression_algo(const vector<string> &code_to_compress, vector<s
                             int position = Get_index(dictionary, dic_entry);
                             string dictionary_index = To_binary(position, 4);
                             string to_push_two = "110" + first_bit_position + second_bit_position + dictionary_index;
-                            two_bit_anywhere_present = true;
                             compression_method = "mismatch";
 
                             for (string &bit : bitmasks)
@@ -518,7 +535,6 @@ vector<string> Compression_algo(const vector<string> &code_to_compress, vector<s
                                     string to_push_bit_mask = "010" + bitmask_location + bitmask_type + dictionary_index;
                                     compression_method = "bitmask";
                                     compressed_code.push_back(to_push_bit_mask);
-                                    bitmask_present = true;
                                     break;
                                 }
                                 else
@@ -532,13 +548,20 @@ vector<string> Compression_algo(const vector<string> &code_to_compress, vector<s
                     }
                     if (bit_mismatch == 4)
                     { //4bit consecutive mismatches
-                        int position = Get_index(dictionary, dic_entry);
-                        string dictionary_index = To_binary(position, 4);
-                        string mis_loc = GetMisLocation(xor_instru);
-                        string to_push = "100" + mis_loc + dictionary_index;
-                        compressed_code.push_back(to_push);
-                        compression_method = "mismatch";
-                        break;
+                        bool check_4 = Consecutive_four(xor_instru);
+                        if (check_4)
+                        {
+                            int position = Get_index(dictionary, dic_entry);
+                            string dictionary_index = To_binary(position, 4);
+                            string mis_loc = GetMisLocation(xor_instru);
+                            string to_push = "100" + mis_loc + dictionary_index;
+                            compressed_code.push_back(to_push);
+                            compression_method = "mismatch";
+                            break;
+                        }
+                        else{
+                            compression_method = "bitmask";
+                        }
                     }
                     else
                     {
@@ -566,7 +589,6 @@ vector<string> Compression_algo(const vector<string> &code_to_compress, vector<s
                         string to_push_bit_mask = "010" + bitmask_location + bitmask_type + dictionary_index;
                         compression_method = "bitmask";
                         compressed_code.push_back(to_push_bit_mask);
-                        bitmask_present = true;
                         break;
                     }
                     else
