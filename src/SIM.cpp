@@ -412,14 +412,15 @@ vector<string> Compression_algo(const vector<string> &code_to_compress, vector<s
     int rle_count = 0;
     string previous_instruction;
 
-    vector<string> possible_bitmasks = {"1000",
-                                        "1100",
-                                        "1010",
-                                        "1110",
-                                        "1001",
-                                        "1101",
-                                        "1011",
-                                        "1111"};
+    vector<string> possible_bitmasks = {
+        "1000",
+        "1100",
+        "1010",
+        "1110",
+        "1001",
+        "1101",
+        "1011",
+        "1111"};
     vector<string> bitmasks = Get_bitmask(possible_bitmasks);
     int count__ = 0;
     int local_count = 0;
@@ -509,12 +510,7 @@ vector<string> Compression_algo(const vector<string> &code_to_compress, vector<s
                             string dictionary_index = To_binary(position, 4);
                             string to_push_two = "110" + first_bit_position + second_bit_position + dictionary_index;
                             compression_method = "mismatch";
-                            /*
-                            hi
-                            hihi
-                            hi
-                            hi
-                            */
+
                             for (string &dic_entry : dictionary)
                             {
                                 string xor_instru2 = to_string(to_bitset(dic_entry) ^ to_bitset(instru_));
@@ -767,7 +763,100 @@ auto Separate_x(const string &to_seperate)
     //     cout << itr->first
     //          << '\t' << itr->second << '\n';
     // }
+
     return compressed_code, dictionary_;
+}
+
+string Get_Bitmask_Decompressed(string &start_location, string &bit__mask, string Dict_inst)
+{
+    string pad = "0";
+    string bitmask__ = (pad * stoi(start_location, 0, 2)) + bit__mask + (pad * (29 - stoi(start_location, 0, 2)));
+    string decompressed_bitmask = to_string(to_bitset(bitmask__) ^ to_bitset(Dict_inst));
+
+    return decompressed_bitmask;
+}
+
+vector<string> Decompression_algo(const string &compressed_code, map<string, string> &dictionary_)
+{
+    vector<string> decompressed_code;
+    int type_ = 0;
+    string opcode;
+    string previous_instruction;
+    for (int char_idx = 0; char_idx < compressed_code.length(); char_idx++)
+    {
+        if (type_ < 3)
+        {
+            opcode += compressed_code[char_idx];
+            type_ += 1;
+        }
+        else if (type_ == 3)
+        {
+            type_ = 0;
+
+            string compressed_code_temp;
+            string bit_mask_component;
+            string start_location;
+            string bit__mask;
+            string DictionarY_index;
+            string dicitonary_val;
+
+            switch (stoi(opcode, 0, 2))
+            {
+            case 1: // uncompressed
+                cout << "1";
+                compressed_code_temp = compressed_code.substr(char_idx, 32);
+
+                decompressed_code.push_back(compressed_code_temp);
+
+                char_idx += 32;
+                previous_instruction = compressed_code_temp;
+                break;
+            case 2: //rle decompression
+                decompressed_code.push_back(previous_instruction);
+
+                char_idx += 3;
+                cout << "2";
+                break;
+            case 3: //bitmask
+                cout << "5";
+                bit_mask_component = compressed_code.substr(char_idx, 13);
+                start_location = bit_mask_component.substr(0, 5);
+                bit__mask = bit_mask_component.substr(5, 4);
+                DictionarY_index = bit_mask_component.substr(9, 4);
+                dicitonary_val = dictionary_[DictionarY_index];
+                compressed_code_temp = Get_Bitmask_Decompressed(start_location, bit__mask, dicitonary_val);
+
+                decompressed_code.push_back(compressed_code_temp);
+
+                char_idx += 13;
+                previous_instruction = compressed_code_temp;
+                break;
+            case 4: //1bit mismatch
+                
+                cout << "6";
+                char_idx +=;
+                previous_instruction = compressed_code_temp;
+                break;
+            case 5:
+                cout << "8";
+                previous_instruction = compressed_code_temp;
+                break;
+            case 6:
+                cout << "9";
+                previous_instruction = compressed_code_temp;
+                break;
+            case 7:
+                cout << "7";
+                previous_instruction = compressed_code_temp;
+                break;
+            case 8:
+                cout << "1.1";
+                previous_instruction = compressed_code_temp;
+                break;
+            }
+        }
+    }
+    return decompressed_code;
 }
 
 int main(int argc, char **argv)
