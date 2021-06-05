@@ -424,7 +424,8 @@ vector<string> Compression_algo(const vector<string> &code_to_compress, vector<s
     vector<string> bitmasks = Get_bitmask(possible_bitmasks);
     int count__ = 0;
     int local_count = 0;
-
+    string to_push_rle;
+    string rle_position;
     for (const string &instru_ : code_to_compress)
     {
         string compression_method = "dictionary";
@@ -435,15 +436,20 @@ vector<string> Compression_algo(const vector<string> &code_to_compress, vector<s
         if (instruction_repeated && rle_count < 8)
         { //rle compression
             // cout << " by rle" << endl;
-            string rle_position = To_binary(rle_count, 3);
+            rle_position = To_binary(rle_count, 3);
             previous_instruction = instru_;
-            string to_push = "001" + rle_position;
-            compressed_code.push_back(to_push);
+            to_push_rle = "001" + rle_position;
+            // compressed_code.push_back(to_push);
             ++rle_count;
             local_count += 1;
         }
         else if (!instruction_repeated || rle_count == 8)
-        {
+        {   
+            if (to_push_rle.length() == 6){
+                compressed_code.push_back(to_push_rle);
+                to_push_rle ="";
+
+            }
             previous_instruction = instru_;
             rle_count = 0;
             // local_count += 1;
@@ -800,9 +806,7 @@ vector<string> Decompression_algo(const string &compressed_code, map<string, str
             string DictionarY_index;
             string dicitonary_val;
 
-            switch (stoi(opcode, 0, 2))
-            {
-            case 1: // uncompressed
+            if (opcode == "000"){ // uncompressed
                 cout << "1";
                 compressed_code_temp = compressed_code.substr(char_idx, 32);
 
@@ -810,14 +814,17 @@ vector<string> Decompression_algo(const string &compressed_code, map<string, str
 
                 char_idx += 32;
                 previous_instruction = compressed_code_temp;
-                break;
-            case 2: //rle decompression
+            }
+            else if (opcode == "001"){ //rle decompression
                 decompressed_code.push_back(previous_instruction);
-
+                /*
+                there is work to be done here
+                
+                */
                 char_idx += 3;
                 cout << "2";
-                break;
-            case 3: //bitmask
+            }
+            else if(opcode == "010"){  //bitmask
                 cout << "5";
                 bit_mask_component = compressed_code.substr(char_idx, 13);
                 start_location = bit_mask_component.substr(0, 5);
@@ -830,30 +837,47 @@ vector<string> Decompression_algo(const string &compressed_code, map<string, str
 
                 char_idx += 13;
                 previous_instruction = compressed_code_temp;
-                break;
-            case 4: //1bit mismatch
-                
-                cout << "6";
-                char_idx +=;
-                previous_instruction = compressed_code_temp;
-                break;
-            case 5:
-                cout << "8";
-                previous_instruction = compressed_code_temp;
-                break;
-            case 6:
-                cout << "9";
-                previous_instruction = compressed_code_temp;
-                break;
-            case 7:
-                cout << "7";
-                previous_instruction = compressed_code_temp;
-                break;
-            case 8:
-                cout << "1.1";
-                previous_instruction = compressed_code_temp;
-                break;
             }
+            else if (opcode == "010"){ // 1 bit mismatch
+                
+                
+                char_idx += 13;
+                previous_instruction = compressed_code_temp;
+            }
+            // switch (stoi(opcode, 0, 2))
+            // {
+            // case 1: 
+                
+            //     break;
+            // case 2: 
+                
+            //     break;
+            // case 3:
+                
+            //     break;
+            // case 4: //1bit mismatch
+                
+            //     cout << "6";
+            //     char_idx +=;
+            //     previous_instruction = compressed_code_temp;
+            //     break;
+            // case 5:
+            //     cout << "8";
+            //     previous_instruction = compressed_code_temp;
+            //     break;
+            // case 6:
+            //     cout << "9";
+            //     previous_instruction = compressed_code_temp;
+            //     break;
+            // case 7:
+            //     cout << "7";
+            //     previous_instruction = compressed_code_temp;
+            //     break;
+            // case 8:
+            //     cout << "1.1";
+            //     previous_instruction = compressed_code_temp;
+            //     break;
+            // }
         }
     }
     return decompressed_code;
@@ -864,7 +888,7 @@ int main(int argc, char **argv)
 
     int argument = strtol(argv[1], NULL, 10);
 
-    if (argument == 1)
+    if (argument == 0)
     {
         vector<string> code_to_compress, dictionary, compressed_code;
 
@@ -880,7 +904,7 @@ int main(int argc, char **argv)
         Write_file(to_print, to_print2); // write the compressed code to cout.txt
     }
 
-    if (argument == 0)
+    if (argument == 2)
     {
         vector<string> code_to_decompress, uncompressed_code;
         map<string, string> dictionary_;
