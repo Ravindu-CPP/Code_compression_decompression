@@ -248,6 +248,7 @@ int AddBitStream(string &s)
     }
     return sum_;
 }
+
 /*
 Generates the bitmask patterns to be used for bitmask based compression
 intput: 
@@ -418,11 +419,8 @@ output:
 vector<string> Compression_algo(const vector<string> &code_to_compress, vector<string> &dictionary)
 {
     vector<string> compressed_code;
-    bool instruction_repeated = false;
-    int rle_count = 0;
-    string previous_instruction;
 
-    vector<string> possible_bitmasks = {
+    const vector<string> possible_bitmasks = {
         "1000",
         "1100",
         "1010",
@@ -432,26 +430,25 @@ vector<string> Compression_algo(const vector<string> &code_to_compress, vector<s
         "1011",
         "1111"};
     vector<string> bitmasks = Get_bitmask(possible_bitmasks);
-    int count__ = 0;
-    int local_count = 0;
+
+    bool instruction_repeated = false;
+    int rle_count = 0;
+    string previous_instruction;
     string to_push_rle;
     string rle_position;
     for (const string &instru_ : code_to_compress)
     {
         string compression_method = "dictionary";
         instruction_repeated = previous_instruction == instru_;
-        count__ += 1;
-        // cout << instruction_repeated << "  instruction  " << instru_;
-        // cout << instru_ << "   " << previous_instruction << endl;
+
+        //rle compression
         if (instruction_repeated && rle_count < 8)
-        { //rle compression
-            // cout << " by rle" << endl;
+        {
+
             rle_position = To_binary(rle_count, 3);
             previous_instruction = instru_;
             to_push_rle = "001" + rle_position;
-            // compressed_code.push_back(to_push);
             ++rle_count;
-            local_count += 1;
         }
         else if (!instruction_repeated || rle_count == 8)
         {
@@ -462,7 +459,6 @@ vector<string> Compression_algo(const vector<string> &code_to_compress, vector<s
             }
             previous_instruction = instru_;
             rle_count = 0;
-            // local_count += 1;
 
             //dictionary
             if (compression_method == "dictionary")
@@ -474,8 +470,6 @@ vector<string> Compression_algo(const vector<string> &code_to_compress, vector<s
                     string dictionary_index = To_binary(position, 4);
                     string to_push = "111" + dictionary_index;
                     compressed_code.push_back(to_push);
-
-                    // cout << " by dic" << endl;
                 }
                 else
                 {
@@ -500,7 +494,7 @@ vector<string> Compression_algo(const vector<string> &code_to_compress, vector<s
                         string to_push = "011" + mis_loc + dictionary_index;
                         compressed_code.push_back(to_push);
                         compression_method = "mismatch";
-                        // cout << " by mismatch 1" << endl;
+
                         break;
                     }
                     //2bit mismatch
@@ -512,13 +506,13 @@ vector<string> Compression_algo(const vector<string> &code_to_compress, vector<s
                             int position = Get_index(dictionary, dic_entry);
                             string dictionary_index = To_binary(position, 4);
                             string mis_loc = GetMisLocation(xor_instru);
-                            string to_push = "011" + mis_loc + dictionary_index;
+                            string to_push = "100" + mis_loc + dictionary_index;
                             compressed_code.push_back(to_push);
                             compression_method = "mismatch";
                             break;
                         }
                         else
-                        { 
+                        {
                             compression_method = "bitmask";
                             break;
                         }
@@ -531,7 +525,7 @@ vector<string> Compression_algo(const vector<string> &code_to_compress, vector<s
                             int position = Get_index(dictionary, dic_entry);
                             string dictionary_index = To_binary(position, 4);
                             string mis_loc = GetMisLocation(xor_instru);
-                            string to_push = "100" + mis_loc + dictionary_index;
+                            string to_push = "101" + mis_loc + dictionary_index;
                             compressed_code.push_back(to_push);
                             compression_method = "mismatch";
                             break;
@@ -557,13 +551,12 @@ vector<string> Compression_algo(const vector<string> &code_to_compress, vector<s
                     int position = Get_index(dictionary, xor_instru);
                     if (position >= 0)
                     {
-                        rle_count = 0;
-                        int temp_location = Get_index(bitmasks, bit);
-                        int bitmask_location_temp = temp_location % 29;
-                        string bitmask_location = To_binary(bitmask_location_temp, 5);
-                        int bit_type_idx = floor(bitmask_location_temp / 29);
-                        string bitmask_type = To_binary(bit_type_idx, 4);
                         string dictionary_index = To_binary(position, 4);
+                        int temp_location = Get_index(bitmasks, bit);
+                        string bitmask_location = GetMisLocation(bit);
+                        int bit_type_idx = floor(temp_location / 29);
+                        string bitmask_type = possible_bitmasks[bit_type_idx];
+
                         string to_push_bit_mask = "010" + bitmask_location + bitmask_type + dictionary_index;
                         compression_method = "bitmask";
                         compressed_code.push_back(to_push_bit_mask);
@@ -608,18 +601,21 @@ vector<string> Compression_algo(const vector<string> &code_to_compress, vector<s
             }
         }
     }
-    // for (string i : compressed_code)
-    // {
-    //     cout << i << endl;
-    // }
-    // cout << count__ << "  " << local_count << endl;
+
     return compressed_code;
 }
 
-string Concat_(const vector<string> &compressed__code)
+/*
+Concatanate a vector of strings into a string
+input:
+    vector_to_cont: vector<string> to concatanate
+output:
+    cont: a concat string of all the strings in the vector
+*/
+string Concat_(const vector<string> &vector_to_cont)
 {
     string cont;
-    for (string i : compressed__code)
+    for (string i : vector_to_cont)
     {
         cont += i;
     }
@@ -627,7 +623,10 @@ string Concat_(const vector<string> &compressed__code)
 }
 
 /*
-remove this function
+function to write the compressed code into a text file
+inputs:
+    to_write1: string which contains all the compressed instructions
+    to_write2: string which contains all the dictionary entries
 */
 void Write_file(string &to_write1, const string &to_write2)
 {
@@ -670,58 +669,19 @@ void Write_file(string &to_write1, const string &to_write2)
                     << to_write2[i];
         }
     }
+    output_ << "\n";
     output_.close();
 }
 
-/////// remove this function
-// auto Separate_x(const string &to_seperate)
-// {
-//     string compressed_code, dict;
-//     map<string, string> dictionary_;
-//     bool to_break = false;
-
-//     for (int i = 0; i < to_seperate.length(); i++)
-//     {
-//         if (to_seperate[i] != 'x' && !to_break)
-//         {
-//             compressed_code += to_seperate[i];
-//         }
-//         else if (to_seperate[i] == 'x')
-//         {
-//             to_break = true;
-//         }
-//         else if (to_break)
-//         {
-//             dict += to_seperate[i];
-//         }
-//     }
-//     int cnt = 0;
-//     string temp_dict;
-//     for (int i = 0; i < dict.length(); i++)
-//     {
-//         if (i == 0 || i % 32 != 0)
-//         {
-//             temp_dict += dict[i];
-//         }
-//         else
-//         {
-//             string key_ = To_binary(cnt, 4);
-//             dictionary_.insert(pair<string, string>(key_, temp_dict));
-//             ++cnt;
-//             temp_dict = dict[i];
-//         }
-//     }
-//     string key_ = To_binary(cnt, 4);
-//     dictionary_.insert(pair<string, string>(key_, temp_dict));
-
-//     // for (auto itr = dictionary_.begin(); itr != dictionary_.end(); ++itr) {
-//     //     cout << itr->first
-//     //          << '\t' << itr->second << '\n';
-//     // }
-
-//     return compressed_code, dictionary_;
-// }
-
+/*
+Function to decompress the instructions compressed by bitmasks
+inputs:
+    start_location: string which contains the information of the starting location of the bitmask
+    bit_mask: string which contains the bitmask used
+    Dict_inst: string which contains the corresponding dicitonary entry
+output:
+    decompressed_bitmask: string which contains the decompressed instruction
+*/
 string Get_Bitmask_Decompressed(string &start_location, string &bit__mask, string Dict_inst)
 {
     string pad = "0";
@@ -731,6 +691,14 @@ string Get_Bitmask_Decompressed(string &start_location, string &bit__mask, strin
     return decompressed_bitmask;
 }
 
+/*
+Function to decompress the instructions compressed by 1bit mismatch
+inputs:
+    start_location: string which contains the information of the starting location of the mismatch
+    Dict_inst: string which contains the corresponding dicitonary entry
+output:
+    one_decompressed__co: string which contains the decompressed instruction
+*/
 string One_Mismatch(string &start_location, string Dict_inst)
 {
     string one_decompressed__co, one_miss;
@@ -741,6 +709,14 @@ string One_Mismatch(string &start_location, string Dict_inst)
     return one_decompressed__co;
 }
 
+/*
+Function to decompress the instructions compressed by 2bit consecutive mismatches
+inputs:
+    start_location: string which contains the information of the starting location of the mismatch
+    Dict_inst: string which contains the corresponding dicitonary entry
+output:
+    two_decompressed__co: string which contains the decompressed instruction
+*/
 string Two_Mismatch(string &start_location, string Dict_inst)
 {
     string two_decompressed__co, two_miss;
@@ -751,6 +727,14 @@ string Two_Mismatch(string &start_location, string Dict_inst)
     return two_decompressed__co;
 }
 
+/*
+Function to decompress the instructions compressed by 4bit consecutive mismatches
+inputs:
+    start_location: string which contains the information of the starting location of the mismatch
+    Dict_inst: string which contains the corresponding dicitonary entry
+output:
+    four_decompressed__co: string which contains the decompressed instruction
+*/
 string Four_Mismatch(string &start_location, string Dict_inst)
 {
     string four_decompressed__co, four_miss;
@@ -761,6 +745,15 @@ string Four_Mismatch(string &start_location, string Dict_inst)
     return four_decompressed__co;
 }
 
+/*
+Function to decompress the instructions compressed by 2bit mismatches anywhere
+inputs:
+    start_location: string which contains the information of the starting location of the 1st bit mismatch
+    start_location2: string which contains the information of the starting location of the 2nd bit mismatch
+    Dict_inst: string which contains the corresponding dicitonary entry
+output:
+    two_any_decompressed: string which contains the decompressed instruction
+*/
 string Two_Mismatch_any(string &start_location, string &start_location2, string Dict_inst)
 {
     string two_any_decompressed, two_miss_any;
@@ -775,6 +768,14 @@ string Two_Mismatch_any(string &start_location, string &start_location2, string 
     return two_any_decompressed;
 }
 
+/*
+Function which decompress the compressed instructions
+inputs:
+    compressed_code: string which contains all the compressed codes
+    dictionary_: map<string,string> which contains all the dictionary entries used for decompression
+output:
+    decompressed_code: vector<string> which contains all the decompressed codes
+*/
 vector<string> Decompression_algo(string &compressed_code, map<string, string> &dictionary_)
 {
     vector<string> decompressed_code;
@@ -994,7 +995,7 @@ int main(int argc, char **argv)
         Write_file(to_print, to_print2); // write the compressed code to cout.txt
     }
 
-    if (argument == 0)
+    if (argument == 2)
     {
         vector<string> code_to_decompress, uncompressed_code;
         map<string, string> dictionary_;
@@ -1003,9 +1004,7 @@ int main(int argc, char **argv)
         code_to_decompress = ReadFile("compressed.txt");
         string total_ = Concat_(code_to_decompress);
 
-        /*
-        Seperate the dictionary and the compressed code
-        */
+        //Seperate the dictionary and the compressed code
         bool to_break = false;
         for (int i = 0; i < total_.length(); i++)
         {
@@ -1040,6 +1039,7 @@ int main(int argc, char **argv)
         }
         string key_ = To_binary(cnt, 4);
         dictionary_.insert(pair<string, string>(key_, temp_dict));
+
         uncompressed_code = Decompression_algo(compressed_code, dictionary_);
 
         //write the decompressed code to a text file
