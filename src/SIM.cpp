@@ -1,6 +1,6 @@
 /*
 Index number: 170006n
-Assignment 5: Code compression and decompression
+Assignment 5: Programming: Code Compression
 */
 #include <iostream>
 #include <vector>
@@ -15,16 +15,6 @@ Assignment 5: Code compression and decompression
 #include <cmath>
 
 using namespace std;
-// using std::bitset;
-// using std::cerr;
-// using std::cout;
-// using std::endl;
-// using std::ifstream;
-// using std::map;
-// using std::ofstream;
-// using std::pair;
-// using std::string;
-// using std::vector;
 
 /*
 Function to read the file and return it as a vector
