@@ -15,6 +15,16 @@ Assignment 5: Code compression and decompression
 #include <cmath>
 
 using namespace std;
+// using std::bitset;
+// using std::cerr;
+// using std::cout;
+// using std::endl;
+// using std::ifstream;
+// using std::map;
+// using std::ofstream;
+// using std::pair;
+// using std::string;
+// using std::vector;
 
 /*
 Function to read the file and return it as a vector
@@ -444,11 +454,11 @@ vector<string> Compression_algo(const vector<string> &code_to_compress, vector<s
             local_count += 1;
         }
         else if (!instruction_repeated || rle_count == 8)
-        {   
-            if (to_push_rle.length() == 6){
+        {
+            if (to_push_rle.length() == 6)
+            {
                 compressed_code.push_back(to_push_rle);
-                to_push_rle ="";
-
+                to_push_rle = "";
             }
             previous_instruction = instru_;
             rle_count = 0;
@@ -725,161 +735,314 @@ void Write_file(string &to_write1, const string &to_write2)
     output_.close();
 }
 
-auto Separate_x(const string &to_seperate)
-{
-    string compressed_code, dict;
-    map<string, string> dictionary_;
-    bool to_break = false;
+/////// remove this function
+// auto Separate_x(const string &to_seperate)
+// {
+//     string compressed_code, dict;
+//     map<string, string> dictionary_;
+//     bool to_break = false;
 
-    for (int i = 0; i < to_seperate.length(); i++)
-    {
-        if (to_seperate[i] != 'x' && !to_break)
-        {
-            compressed_code += to_seperate[i];
-        }
-        else if (to_seperate[i] == 'x')
-        {
-            to_break = true;
-        }
-        else if (to_break)
-        {
-            dict += to_seperate[i];
-        }
-    }
-    int cnt = 0;
-    string temp_dict;
-    for (int i = 0; i < dict.length(); i++)
-    {
-        if (i == 0 || i % 32 != 0)
-        {
-            temp_dict += dict[i];
-        }
-        else
-        {
-            string key_ = To_binary(cnt, 4);
-            dictionary_.insert(pair<string, string>(key_, temp_dict));
-            ++cnt;
-            temp_dict = dict[i];
-        }
-    }
-    string key_ = To_binary(cnt, 4);
-    dictionary_.insert(pair<string, string>(key_, temp_dict));
+//     for (int i = 0; i < to_seperate.length(); i++)
+//     {
+//         if (to_seperate[i] != 'x' && !to_break)
+//         {
+//             compressed_code += to_seperate[i];
+//         }
+//         else if (to_seperate[i] == 'x')
+//         {
+//             to_break = true;
+//         }
+//         else if (to_break)
+//         {
+//             dict += to_seperate[i];
+//         }
+//     }
+//     int cnt = 0;
+//     string temp_dict;
+//     for (int i = 0; i < dict.length(); i++)
+//     {
+//         if (i == 0 || i % 32 != 0)
+//         {
+//             temp_dict += dict[i];
+//         }
+//         else
+//         {
+//             string key_ = To_binary(cnt, 4);
+//             dictionary_.insert(pair<string, string>(key_, temp_dict));
+//             ++cnt;
+//             temp_dict = dict[i];
+//         }
+//     }
+//     string key_ = To_binary(cnt, 4);
+//     dictionary_.insert(pair<string, string>(key_, temp_dict));
 
-    // for (auto itr = dictionary_.begin(); itr != dictionary_.end(); ++itr) {
-    //     cout << itr->first
-    //          << '\t' << itr->second << '\n';
-    // }
+//     // for (auto itr = dictionary_.begin(); itr != dictionary_.end(); ++itr) {
+//     //     cout << itr->first
+//     //          << '\t' << itr->second << '\n';
+//     // }
 
-    return compressed_code, dictionary_;
-}
+//     return compressed_code, dictionary_;
+// }
 
 string Get_Bitmask_Decompressed(string &start_location, string &bit__mask, string Dict_inst)
 {
     string pad = "0";
-    string bitmask__ = (pad * stoi(start_location, 0, 2)) + bit__mask + (pad * (29 - stoi(start_location, 0, 2)));
+    string bitmask__ = (pad * stoi(start_location, 0, 2)) + bit__mask + (pad * (28 - stoi(start_location, 0, 2)));
     string decompressed_bitmask = to_string(to_bitset(bitmask__) ^ to_bitset(Dict_inst));
 
     return decompressed_bitmask;
 }
 
-vector<string> Decompression_algo(const string &compressed_code, map<string, string> &dictionary_)
+string One_Mismatch(string &start_location, string Dict_inst)
+{
+    string one_decompressed__co, one_miss;
+    string pad = "0";
+    one_miss = (pad * stoi(start_location, 0, 2)) + "1" + (pad * (31 - stoi(start_location, 0, 2)));
+    one_decompressed__co = to_string(to_bitset(one_miss) ^ to_bitset(Dict_inst));
+
+    return one_decompressed__co;
+}
+
+string Two_Mismatch(string &start_location, string Dict_inst)
+{
+    string two_decompressed__co, two_miss;
+    string pad = "0";
+    two_miss = (pad * stoi(start_location, 0, 2)) + "11" + (pad * (30 - stoi(start_location, 0, 2)));
+    two_decompressed__co = to_string(to_bitset(two_miss) ^ to_bitset(Dict_inst));
+
+    return two_decompressed__co;
+}
+
+string Four_Mismatch(string &start_location, string Dict_inst)
+{
+    string four_decompressed__co, four_miss;
+    string pad = "0";
+    four_miss = (pad * stoi(start_location, 0, 2)) + "1111" + (pad * (28 - stoi(start_location, 0, 2)));
+    four_decompressed__co = to_string(to_bitset(four_miss) ^ to_bitset(Dict_inst));
+
+    return four_decompressed__co;
+}
+
+string Two_Mismatch_any(string &start_location, string &start_location2, string Dict_inst)
+{
+    string two_any_decompressed, two_miss_any;
+    int st1 = stoi(start_location, 0, 2);
+    int st2 = stoi(start_location2, 0, 2) - st1 - 1;
+    int fin = (30 - (st1 + st2));
+    string pad = "0";
+    two_miss_any = (pad * st1) + "1" + (pad * st2) + "1" + (pad * fin);
+
+    two_any_decompressed = to_string(to_bitset(two_miss_any) ^ to_bitset(Dict_inst));
+
+    return two_any_decompressed;
+}
+
+vector<string> Decompression_algo(string &compressed_code, map<string, string> &dictionary_)
 {
     vector<string> decompressed_code;
     int type_ = 0;
     string opcode;
     string previous_instruction;
-    for (int char_idx = 0; char_idx < compressed_code.length(); char_idx++)
+    int idx_string_c = 0;
+    // cout << compressed_code.size() << endl;
+    for (idx_string_c; idx_string_c < compressed_code.length();)
     {
         if (type_ < 3)
         {
-            opcode += compressed_code[char_idx];
+            opcode += compressed_code[idx_string_c];
             type_ += 1;
+            idx_string_c++;
         }
         else if (type_ == 3)
         {
             type_ = 0;
 
             string compressed_code_temp;
-            string bit_mask_component;
-            string start_location;
+            string info_component;
+            string start_location, start_location2;
             string bit__mask;
             string DictionarY_index;
             string dicitonary_val;
 
-            if (opcode == "000"){ // uncompressed
-                cout << "1";
-                compressed_code_temp = compressed_code.substr(char_idx, 32);
+            // uncompressed
+            if (opcode == "000")
+            {
+                opcode = "";
+                if (idx_string_c + 32 <= compressed_code.length())
+                {
+                    compressed_code_temp = compressed_code.substr(idx_string_c, 32);
 
-                decompressed_code.push_back(compressed_code_temp);
+                    decompressed_code.push_back(compressed_code_temp);
+                    previous_instruction = compressed_code_temp;
+                }
+                else
+                {
+                    break;
+                }
+                idx_string_c += 32;
+            }
 
-                char_idx += 32;
-                previous_instruction = compressed_code_temp;
+            //rle decompression
+            else if (opcode == "001")
+            {
+                opcode = "";
+                if (idx_string_c + 3 <= compressed_code.length())
+                {
+                    string num_of_times = compressed_code.substr(idx_string_c, 3);
+                    for (int times_ = 0; times_ < stoi(num_of_times, 0, 2); times_++)
+                    {
+                        decompressed_code.push_back(previous_instruction);
+                    }
+                }
+                else
+                {
+                    break;
+                }
+                idx_string_c += 3;
             }
-            else if (opcode == "001"){ //rle decompression
-                decompressed_code.push_back(previous_instruction);
-                /*
-                there is work to be done here
-                
-                */
-                char_idx += 3;
-                cout << "2";
-            }
-            else if(opcode == "010"){  //bitmask
-                cout << "5";
-                bit_mask_component = compressed_code.substr(char_idx, 13);
-                start_location = bit_mask_component.substr(0, 5);
-                bit__mask = bit_mask_component.substr(5, 4);
-                DictionarY_index = bit_mask_component.substr(9, 4);
-                dicitonary_val = dictionary_[DictionarY_index];
-                compressed_code_temp = Get_Bitmask_Decompressed(start_location, bit__mask, dicitonary_val);
 
-                decompressed_code.push_back(compressed_code_temp);
+            //bitmask
+            else if (opcode == "010")
+            {
+                opcode = "";
+                if (idx_string_c + 13 <= compressed_code.length())
+                {
+                    info_component = compressed_code.substr(idx_string_c, 13);
+                    start_location = info_component.substr(0, 5);
+                    bit__mask = info_component.substr(5, 4);
+                    DictionarY_index = info_component.substr(9, 4);
+                    dicitonary_val = dictionary_[DictionarY_index];
+                    compressed_code_temp = Get_Bitmask_Decompressed(start_location, bit__mask, dicitonary_val);
 
-                char_idx += 13;
-                previous_instruction = compressed_code_temp;
+                    decompressed_code.push_back(compressed_code_temp);
+                    previous_instruction = compressed_code_temp;
+                }
+                else
+                {
+                    break;
+                }
+                idx_string_c += 13;
             }
-            else if (opcode == "010"){ // 1 bit mismatch
-                
-                
-                char_idx += 13;
-                previous_instruction = compressed_code_temp;
+
+            // 1 bit mismatch
+            else if (opcode == "011")
+            {
+                if (idx_string_c + 9 <= compressed_code.length())
+                {
+                    opcode = "";
+                    info_component = compressed_code.substr(idx_string_c, 9);
+                    start_location = info_component.substr(0, 5);
+                    DictionarY_index = info_component.substr(5, 4);
+                    dicitonary_val = dictionary_[DictionarY_index];
+
+                    compressed_code_temp = One_Mismatch(start_location, dicitonary_val);
+
+                    decompressed_code.push_back(compressed_code_temp);
+                    previous_instruction = compressed_code_temp;
+                }
+                else
+                {
+                    break;
+                }
+                idx_string_c += 9;
             }
-            // switch (stoi(opcode, 0, 2))
-            // {
-            // case 1: 
-                
-            //     break;
-            // case 2: 
-                
-            //     break;
-            // case 3:
-                
-            //     break;
-            // case 4: //1bit mismatch
-                
-            //     cout << "6";
-            //     char_idx +=;
-            //     previous_instruction = compressed_code_temp;
-            //     break;
-            // case 5:
-            //     cout << "8";
-            //     previous_instruction = compressed_code_temp;
-            //     break;
-            // case 6:
-            //     cout << "9";
-            //     previous_instruction = compressed_code_temp;
-            //     break;
-            // case 7:
-            //     cout << "7";
-            //     previous_instruction = compressed_code_temp;
-            //     break;
-            // case 8:
-            //     cout << "1.1";
-            //     previous_instruction = compressed_code_temp;
-            //     break;
-            // }
+
+            // 2-bit consecutive mismatch
+            else if (opcode == "100")
+            {
+                if (idx_string_c + 9 <= compressed_code.length())
+                {
+                    opcode = "";
+                    info_component = compressed_code.substr(idx_string_c, 9);
+                    start_location = info_component.substr(0, 5);
+                    DictionarY_index = info_component.substr(5, 4);
+                    dicitonary_val = dictionary_[DictionarY_index];
+
+                    compressed_code_temp = Two_Mismatch(start_location, dicitonary_val);
+
+                    decompressed_code.push_back(compressed_code_temp);
+                    previous_instruction = compressed_code_temp;
+                }
+                else
+                {
+                    break;
+                }
+                idx_string_c += 9;
+            }
+            // 2-bit anywhere mismatch
+            else if (opcode == "101")
+            {
+                if (idx_string_c + 9 <= compressed_code.length())
+                {
+                    opcode = "";
+                    info_component = compressed_code.substr(idx_string_c, 9);
+                    start_location = info_component.substr(0, 5);
+                    DictionarY_index = info_component.substr(5, 4);
+                    dicitonary_val = dictionary_[DictionarY_index];
+
+                    compressed_code_temp = Four_Mismatch(start_location, dicitonary_val);
+
+                    decompressed_code.push_back(compressed_code_temp);
+                    previous_instruction = compressed_code_temp;
+                }
+                else
+                {
+                    break;
+                }
+                idx_string_c += 9;
+            }
+
+            //2-bit anywhere
+            else if (opcode == "110")
+            {
+                if (idx_string_c + 14 <= compressed_code.length())
+                {
+                    opcode = "";
+                    info_component = compressed_code.substr(idx_string_c, 14);
+                    start_location = info_component.substr(0, 5);
+                    start_location2 = info_component.substr(5, 5);
+                    DictionarY_index = info_component.substr(10, 4);
+                    dicitonary_val = dictionary_[DictionarY_index];
+
+                    compressed_code_temp = Two_Mismatch_any(start_location, start_location2, dicitonary_val);
+
+                    decompressed_code.push_back(compressed_code_temp);
+                    previous_instruction = compressed_code_temp;
+                }
+                else
+                {
+                    break;
+                }
+                idx_string_c += 14;
+            }
+
+            // dictionary
+            else if (opcode == "111")
+            {
+                if (idx_string_c + 4 <= compressed_code.length())
+                {
+                    opcode = "";
+                    DictionarY_index = compressed_code.substr(idx_string_c, 4);
+                    dicitonary_val = dictionary_[DictionarY_index];
+
+                    compressed_code_temp = dicitonary_val;
+
+                    decompressed_code.push_back(compressed_code_temp);
+                    previous_instruction = compressed_code_temp;
+                }
+                else
+                {
+                    break;
+                }
+                idx_string_c += 4;
+            }
         }
     }
+
+    // for (string i : decompressed_code)
+    // {
+    //     cout << i << endl;
+    // }
     return decompressed_code;
 }
 
@@ -888,7 +1051,7 @@ int main(int argc, char **argv)
 
     int argument = strtol(argv[1], NULL, 10);
 
-    if (argument == 0)
+    if (argument == 1)
     {
         vector<string> code_to_compress, dictionary, compressed_code;
 
@@ -908,14 +1071,65 @@ int main(int argc, char **argv)
     {
         vector<string> code_to_decompress, uncompressed_code;
         map<string, string> dictionary_;
-        string compressed_code;
+        string compressed_code, dict;
 
         code_to_decompress = ReadFile("compressed.txt");
         string total_ = Concat_(code_to_decompress);
+        // cout << total_ << endl;
 
-        compressed_code, dictionary_ = Separate_x(total_);
+        /*
+        Seperate the dictionary and the compressed code
+        */
+        bool to_break = false;
+        for (int i = 0; i < total_.length(); i++)
+        {
+            if (total_[i] != 'x' && !to_break)
+            {
+                compressed_code += total_[i];
+            }
+            else if (total_[i] == 'x')
+            {
+                to_break = true;
+            }
+            else if (to_break)
+            {
+                dict += total_[i];
+            }
+        }
+        int cnt = 0;
+        string temp_dict;
+        for (int i = 0; i < dict.length(); i++)
+        {
+            if (i == 0 || i % 32 != 0)
+            {
+                temp_dict += dict[i];
+            }
+            else
+            {
+                string key_ = To_binary(cnt, 4);
+                dictionary_.insert(pair<string, string>(key_, temp_dict));
+                ++cnt;
+                temp_dict = dict[i];
+            }
+        }
+        string key_ = To_binary(cnt, 4);
+        dictionary_.insert(pair<string, string>(key_, temp_dict));
 
-        // uncompressed_code = Decompression_algo(compressed_code,dictionary_);
+        uncompressed_code = Decompression_algo(compressed_code, dictionary_);
+
+        //write the decompressed code to a text file
+        ofstream de_out;
+
+        de_out.open("dout.txt"); 
+        if (!de_out)
+        { 
+            cerr << "Error: file could not be opened" << endl;
+            exit(1);
+        }
+        for (string &i : uncompressed_code){
+            de_out << i << endl;
+        }
+        de_out.close();
     }
     return 0;
 }
