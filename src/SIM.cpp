@@ -1,6 +1,6 @@
 /*
 Index number: 170006n
-Assignment 5: Code compression and decompression
+Assignment 5: Programming: Code Compression
 */
 #include <iostream>
 #include <vector>
@@ -15,16 +15,6 @@ Assignment 5: Code compression and decompression
 #include <cmath>
 
 using namespace std;
-// using std::bitset;
-// using std::cerr;
-// using std::cout;
-// using std::endl;
-// using std::ifstream;
-// using std::map;
-// using std::ofstream;
-// using std::pair;
-// using std::string;
-// using std::vector;
 
 /*
 Function to read the file and return it as a vector
@@ -480,7 +470,7 @@ vector<string> Compression_algo(const vector<string> &code_to_compress, vector<s
             //bit mismactch compression
             if (compression_method == "mismatch")
             {
-                for (string &dic_entry : dictionary)
+                for (string dic_entry : dictionary)
                 {
                     string xor_instru = to_string(to_bitset(dic_entry) ^ to_bitset(instru_));
                     int bit_mismatch = AddBitStream(xor_instru); // check bit mismatches
@@ -545,16 +535,17 @@ vector<string> Compression_algo(const vector<string> &code_to_compress, vector<s
             //bitmask
             if (compression_method == "bitmask")
             {
-                for (string &bit : bitmasks)
+                for (string dic_entry : dictionary)
                 {
-                    string xor_instru = to_string(to_bitset(bit) ^ to_bitset(instru_));
-                    int position = Get_index(dictionary, xor_instru);
-                    if (position >= 0)
+                    string xor_instru = to_string(to_bitset(dic_entry) ^ to_bitset(instru_));
+                    int bit_position = Get_index(bitmasks, xor_instru);
+                    if (bit_position >= 0)
                     {
-                        string dictionary_index = To_binary(position, 4);
-                        int temp_location = Get_index(bitmasks, bit);
-                        string bitmask_location = GetMisLocation(bit);
-                        int bit_type_idx = floor(temp_location / 29);
+                        int position = Get_index(dictionary,dic_entry);
+                        string dictionary_index = To_binary(position, 4); // get the dictionary index
+
+                        string bitmask_location = GetMisLocation(xor_instru);  //get the bitmask location
+                        int bit_type_idx = floor(bit_position / 29);            //get thet bitmask type
                         string bitmask_type = possible_bitmasks[bit_type_idx];
 
                         string to_push_bit_mask = "010" + bitmask_location + bitmask_type + dictionary_index;
