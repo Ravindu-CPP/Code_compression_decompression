@@ -782,7 +782,6 @@ vector<string> Decompression_algo(string &compressed_code, map<string, string> &
     string opcode;
     string previous_instruction;
     int idx_string_c = 0;
-    // cout << compressed_code.size() << endl;
     for (idx_string_c; idx_string_c < compressed_code.length();)
     {
         if (type_ < 3)
@@ -822,7 +821,7 @@ vector<string> Decompression_algo(string &compressed_code, map<string, string> &
                 if (idx_string_c + 3 <= compressed_code.length())
                 {
                     string num_of_times = compressed_code.substr(idx_string_c, 3);
-                    for (int times_ = 0; times_ < stoi(num_of_times, 0, 2); times_++)
+                    for (int times_ = 0; times_ <= stoi(num_of_times, 0, 2); times_++)
                     {
                         decompressed_code.push_back(previous_instruction);
                     }
@@ -971,11 +970,6 @@ vector<string> Decompression_algo(string &compressed_code, map<string, string> &
             }
         }
     }
-
-    // for (string i : decompressed_code)
-    // {
-    //     cout << i << endl;
-    // }
     return decompressed_code;
 }
 
@@ -1008,7 +1002,6 @@ int main(int argc, char **argv)
 
         code_to_decompress = ReadFile("compressed.txt");
         string total_ = Concat_(code_to_decompress);
-        // cout << total_ << endl;
 
         /*
         Seperate the dictionary and the compressed code
@@ -1047,7 +1040,6 @@ int main(int argc, char **argv)
         }
         string key_ = To_binary(cnt, 4);
         dictionary_.insert(pair<string, string>(key_, temp_dict));
-        cout << compressed_code << endl;
         uncompressed_code = Decompression_algo(compressed_code, dictionary_);
 
         //write the decompressed code to a text file
