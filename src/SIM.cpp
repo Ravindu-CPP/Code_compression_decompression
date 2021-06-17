@@ -16,6 +16,7 @@ Assignment 5: Programming: Code Compression
 
 using namespace std;
 
+
 /*
 Function to read the file and return it as a vector
 inputs:
